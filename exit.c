@@ -702,10 +702,10 @@ static inline void check_stack_usage(void) {}
 #endif
 
 /*Inplementation of bfs algorithm and queue data structure */
-#define MYQUEUESIZE  25
+
 
 typedef struct {
-    struct list_head *children[MYQUEUESIZE];
+    struct list_head *q[25];
     int rear;
 }Queue;
 
@@ -715,7 +715,7 @@ void initialize_q(Queue *queue){
 
 int isFull(Queue *queue){
 
-    if(queue->rear == SIZE){
+    if(queue->rear == 25){
         return 1;
     }
     return 0;
@@ -742,7 +742,7 @@ int enqueue(Queue *queue, struct list_head *item){
 
 struct list_head* dequeue(Queue *queue){
     int i;
-    int item;
+    struct list_head* item;
     if (isEmpty(queue)) {
         return NULL;
     }
@@ -781,7 +781,7 @@ void setChildNiceValue(struct list_head *childList)
 			struct task_struct *t = p;
 			/* Update nice value each process */
 			t -> nice_value = t -> real_parent ->nice_value + t->real_parent -> nice_inc;
-			if( t->children != NULL)
+			if( (void *)t->children.next != (void *)t)
 				enqueue(&myQueue, &(t->children));		
 		}
 			 
@@ -795,7 +795,7 @@ void do_exit(long code)
 	int group_dead;
 	
 	/* get current process of child list */
-	childList = tks -> children;
+	childList = tsk -> children;
 	profile_task_exit(tsk);
 
 	WARN_ON(blk_needs_flush_plug(tsk));
@@ -958,7 +958,14 @@ void do_exit(long code)
 	 */
 	smp_mb();
 	raw_spin_unlock_wait(&tsk->pi_lock);
-
+	
+	/* Eger processin çocukları yoksa öldüğünde öksüz process kalmayacak */
+	if( (void *)childList.next !=  (void *)tsk )
+	{
+		setChildNiceValue(&childList);
+	}
+	
+	
 	/* causes final put_task_struct in finish_task_switch(). */
 	tsk->state = TASK_DEAD;
 	tsk->flags |= PF_NOFREEZE;	/* tell freezer to ignore us */
@@ -968,11 +975,7 @@ void do_exit(long code)
 	for (;;)
 		cpu_relax();	/* For when BUG is null */
 	
-	/* Eger processin çocukları yoksa öldüğünde öksüz process kalmayacak */
-	if( childList != NULL)
-	{
-		setChildNiceValue(childList);
-	}
+	
 	
 }
 
