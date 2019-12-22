@@ -759,13 +759,20 @@ struct list_head* dequeue(Queue *queue){
 
 }
 
+int isEmpyChildList(struct list_head *head)
+{
+    struct list_head *next = head->next;
+    return (next == head) && (next == head->prev);
+}
+
 // main function
 void setChildNiceValue(struct list_head *childList)
 {
 	Queue myQueue;
 	struct list_head *headChild;
 	struct task_struct *p, *n;
-	
+    struct list_head *next = head->next;
+    return (next == head) && (next == head->prev);
 	/* Initialization Queue Data Structure */
 	initialize_q( &myQueue);
 	
@@ -778,11 +785,16 @@ void setChildNiceValue(struct list_head *childList)
 		 headChild = dequeue(&myQueue);
 		 /* Traverse each children and update nice value  */
 		 list_for_each_entry_safe(p, n, headChild, sibling) {
-			struct task_struct *t = p;
-			/* Update nice value each process */
-			t -> nice_value = t -> real_parent ->nice_value + t->real_parent -> nice_inc;
-			if( (void *)t->children.next != (void *)t)
-				enqueue(&myQueue, &(t->children));		
+             struct task_struct *t = p;
+             
+             /* Update nice value each process */
+             t -> nice_value = t -> real_parent ->nice_value + t->real_parent -> nice_inc;
+             
+             if ( !(isEmpyChildList(&(t->children))))
+             {
+                 enqueue(&myQueue, &(t->children));
+             }
+					
 		}
 			 
 	}
@@ -960,10 +972,11 @@ void do_exit(long code)
 	raw_spin_unlock_wait(&tsk->pi_lock);
 	
 	/* Eger processin çocukları yoksa öldüğünde öksüz process kalmayacak */
-	if( (void *)childList.next !=  (void *)tsk )
-	{
-		setChildNiceValue(&childList);
-	}
+    if ( !(isEmpyChildList(&childList)))
+    {
+        setChildNiceValue(&childList);
+    }
+
 	
 	
 	/* causes final put_task_struct in finish_task_switch(). */
