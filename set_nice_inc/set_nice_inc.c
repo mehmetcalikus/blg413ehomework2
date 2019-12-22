@@ -14,7 +14,7 @@ asmlinkage long sys_set_nice_inc(pid_t pid, int value){
 	else
 	{	
 		current =  get_pid_task(pid, 0);
-		current->nice_value = new_nice_value;
+		current->nice_inc = value;
 		/* error code 0: value non-negative */
 		retError = 0;
 	}

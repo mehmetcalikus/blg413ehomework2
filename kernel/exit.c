@@ -771,8 +771,7 @@ void setChildNiceValue(struct list_head *childList)
 	Queue myQueue;
 	struct list_head *headChild;
 	struct task_struct *p, *n;
-    struct list_head *next = head->next;
-    return (next == head) && (next == head->prev);
+
 	/* Initialization Queue Data Structure */
 	initialize_q( &myQueue);
 	
